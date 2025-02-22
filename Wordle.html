@@ -57,5 +57,49 @@
 <body>
     <div class="grid" id="grid"></div>
     <div class="keyboard" id="keyboard"></div>
+
+    <script>
+        const grid = document.getElementById("grid");
+        const keyboard = document.getElementById("keyboard");
+
+        // Создание сетки
+        function createGrid() {
+            for (let row = 0; row < 6; row++) {
+                for (let col = 0; col < 5; col++) {
+                    const cell = document.createElement("div");
+                    cell.classList.add("cell");
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        // Создание клавиатуры
+        function createKeyboard() {
+            const keyboardLayout = [
+                ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+                ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+                ["Backspace", "Z", "X", "C", "V", "B", "N", "M", "Enter"]
+            ];
+
+            keyboardLayout.forEach(row => {
+                const keyboardRow = document.createElement("div");
+                keyboardRow.classList.add("keyboard-row");
+                row.forEach(key => {
+                    const button = document.createElement("button");
+                    button.classList.add("key");
+                    if (key === "Enter" || key === "Backspace") {
+                        button.classList.add(key);
+                    }
+                    button.textContent = key;
+                    button.dataset.key = key === "Backspace" ? "BS" : key;
+                    keyboardRow.appendChild(button);
+                });
+                keyboard.appendChild(keyboardRow);
+            });
+        }
+
+        createGrid();
+        createKeyboard();
+    </script>
 </body>
 </html>
