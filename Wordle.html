@@ -14,7 +14,15 @@
             height: 100vh;
             margin: 0;
             background-color: #f0f0f0;
+            color: #000;
+            transition: background-color 0.3s, color 0.3s;
         }
+
+        body.dark-theme {
+            background-color: #121212;
+            color: #ffffff;
+        }
+
         .grid {
             display: grid;
             grid-template-rows: repeat(6, 60px);
@@ -22,6 +30,7 @@
             gap: 5px;
             margin-bottom: 20px;
         }
+
         .cell {
             display: flex;
             align-items: center;
@@ -31,17 +40,28 @@
             font-weight: bold;
             background-color: #fff;
             border-radius: 8px;
+            color: #000;
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s;
         }
+
+        body.dark-theme .cell {
+            background-color: #333;
+            border-color: #555;
+            color: #fff;
+        }
+
         .keyboard {
             display: flex;
             flex-direction: column;
             gap: 5px;
         }
+
         .keyboard-row {
             display: flex;
             justify-content: center;
             gap: 5px;
         }
+
         .key {
             padding: 10px;
             font-size: 16px;
@@ -50,25 +70,68 @@
             background-color: #ddd;
             cursor: pointer;
             border-radius: 5px;
+            color: #000;
+            transition: background-color 0.3s, color 0.3s;
         }
+
+        body.dark-theme .key {
+            background-color: #444;
+            color: #fff;
+        }
+
         .key.Enter, .key.BS {
             padding: 10px 20px;
         }
+
         .green {
             background-color: #6aaa64;
             color: white;
         }
+
         .yellow {
             background-color: #c9b458;
             color: white;
         }
+
         .gray {
             background-color: #787c7e;
             color: white;
         }
+
+        body.dark-theme .green {
+            background-color: #4b8b3b;
+        }
+
+        body.dark-theme .yellow {
+            background-color: #b89b30;
+        }
+
+        body.dark-theme .gray {
+            background-color: #2c2c2c;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            background-color: #ddd;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.dark-theme .theme-toggle {
+            background-color: #444;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
+    <button class="theme-toggle" id="themeToggle">Dark</button>
     <div class="grid" id="grid"></div>
     <div class="keyboard" id="keyboard"></div>
 
@@ -80,6 +143,7 @@
 
         const grid = document.getElementById("grid");
         const keyboard = document.getElementById("keyboard");
+        const themeToggle = document.getElementById("themeToggle");
 
         // Загрузка списка слов из файла на GitHub
         async function loadWords() {
@@ -192,7 +256,6 @@
                 cell.classList.add(result[i]); // Применяем цвет к ячейке
             }
 
-            // Обновляем цвет кнопок на клавиатуре
             updateKeyboardColors(result);
 
             if (result.every(color => color === "green")) {
@@ -209,6 +272,7 @@
         // Обновление цветов кнопок на клавиатуре
         function updateKeyboardColors(result) {
             const keys = document.querySelectorAll(".key");
+
             keys.forEach(key => {
                 const keyChar = key.textContent;
                 if (keyChar === "Enter" || keyChar === "Backspace") return;
@@ -216,8 +280,10 @@
                 for (let i = 0; i < 5; i++) {
                     if (currentInput[i] === keyChar) {
                         if (result[i] === "green") {
+                            key.classList.remove("yellow", "gray");
                             key.classList.add("green");
                         } else if (result[i] === "yellow" && !key.classList.contains("green")) {
+                            key.classList.remove("gray");
                             key.classList.add("yellow");
                         } else if (result[i] === "gray" && !key.classList.contains("green") && !key.classList.contains("yellow")) {
                             key.classList.add("gray");
@@ -226,6 +292,13 @@
                 }
             });
         }
+
+        // Переключение темы
+        themeToggle.addEventListener("click", () => {
+            document.body.classList.toggle("dark-theme");
+            const isDarkTheme = document.body.classList.contains("dark-theme");
+            themeToggle.textContent = isDarkTheme ? "Light" : "Dark";
+        });
 
         loadWords();
 
