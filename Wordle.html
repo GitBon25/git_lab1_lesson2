@@ -30,6 +30,7 @@
             font-size: 24px;
             font-weight: bold;
             background-color: #fff;
+            border-radius: 8px;
         }
         .keyboard {
             display: flex;
@@ -48,9 +49,22 @@
             border: none;
             background-color: #ddd;
             cursor: pointer;
+            border-radius: 5px;
         }
         .key.Enter, .key.BS {
             padding: 10px 20px;
+        }
+        .green {
+            background-color: #6aaa64;
+            color: white;
+        }
+        .yellow {
+            background-color: #c9b458;
+            color: white;
+        }
+        .gray {
+            background-color: #787c7e;
+            color: white;
         }
     </style>
 </head>
@@ -59,10 +73,39 @@
     <div class="keyboard" id="keyboard"></div>
 
     <script>
+        let validWords = []; // Список допустимых слов
+        let targetWord = ""; // Загаданное слово
+        let currentAttempt = 0; // Текущая попытка
+        let currentInput = ""; // Текущий ввод пользователя
+
         const grid = document.getElementById("grid");
         const keyboard = document.getElementById("keyboard");
 
-        // Создание сетки
+        // Загрузка списка слов из файла на GitHub
+        async function loadWords() {
+            try {
+                const response = await fetch("https://raw.githubusercontent.com/GitBon25/Wordle-Game/refs/heads/main/words.txt");
+                const text = await response.text();
+                validWords = text.split("\n").map(word => word.trim().toUpperCase());
+                startGame();
+            } catch (error) {
+                console.error("Ошибка при загрузке слов:", error);
+                alert("Не удалось загрузить список слов. Пожалуйста, проверьте подключение к интернету.");
+            }
+        }
+
+        function startGame() {
+            targetWord = getRandomWord(); // Выбираем случайное слово
+            createGrid();
+            createKeyboard();
+        }
+
+        // Выбор случайного слова из списка
+        function getRandomWord() {
+            return validWords[Math.floor(Math.random() * validWords.length)];
+        }
+
+        // Создание сетки для отображения попыток
         function createGrid() {
             for (let row = 0; row < 6; row++) {
                 for (let col = 0; col < 5; col++) {
@@ -73,7 +116,7 @@
             }
         }
 
-        // Создание клавиатуры
+        // Создание виртуальной клавиатуры
         function createKeyboard() {
             const keyboardLayout = [
                 ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
@@ -98,37 +141,93 @@
             });
         }
 
-        let currentAttempt = 0;
-        let currentInput = "";
-
         // Обработка нажатия клавиш
         function handleKeyPress(key) {
-            if (currentAttempt >= 6) return;
+            if (currentAttempt >= 6) return; // Если попытки закончились, ничего не делаем
 
             if (key === "BS") {
-                currentInput = currentInput.slice(0, -1);
+                currentInput = currentInput.slice(0, -1); // Удаляем последний символ
             } else if (key === "Enter") {
                 if (currentInput.length === 5) {
-                    // Пока что просто сбрасываем ввод
-                    currentAttempt++;
-                    currentInput = "";
+                    currentInput = currentInput.toUpperCase();
+                    if (validWords.includes(currentInput)) {
+                        checkWord(); // Проверяем слово, если оно допустимо
+                    } else {
+                        alert("Это недопустимое слово. Попробуйте другое.");
+                    }
                 }
             } else if (/^[A-Z]$/.test(key)) {
                 if (currentInput.length < 5) {
-                    currentInput += key;
+                    currentInput += key.toUpperCase(); // Добавляем букву, если введено меньше 5 символов
                 }
             }
-            updateGrid();
+            updateGrid(); // Обновляем отображение сетки
         }
 
-        // Обновление сетки
+        // Обновление сетки с текущим вводом
         function updateGrid() {
             const cells = document.querySelectorAll(".cell");
             for (let i = 0; i < 5; i++) {
                 const cell = cells[currentAttempt * 5 + i];
-                cell.textContent = currentInput[i] || "";
+                cell.textContent = currentInput[i] || ""; // Отображаем текущий ввод
             }
         }
+
+        // Проверка введенного слова
+        function checkWord() {
+            const result = [];
+            for (let i = 0; i < 5; i++) {
+                if (currentInput[i] === targetWord[i]) {
+                    result.push("green"); // Буква на правильном месте
+                } else if (targetWord.includes(currentInput[i])) {
+                    result.push("yellow"); // Буква есть в слове, но не на этом месте
+                } else {
+                    result.push("gray"); // Буквы нет в слове
+                }
+            }
+
+            const cells = document.querySelectorAll(".cell");
+            for (let i = 0; i < 5; i++) {
+                const cell = cells[currentAttempt * 5 + i];
+                cell.classList.add(result[i]); // Применяем цвет к ячейке
+            }
+
+            // Обновляем цвет кнопок на клавиатуре
+            updateKeyboardColors(result);
+
+            if (result.every(color => color === "green")) {
+                alert("Победа! Вы угадали слово: " + targetWord);
+            } else {
+                currentAttempt++;
+                currentInput = "";
+                if (currentAttempt >= 6) {
+                    alert("Поражение! Загаданное слово было: " + targetWord);
+                }
+            }
+        }
+
+        // Обновление цветов кнопок на клавиатуре
+        function updateKeyboardColors(result) {
+            const keys = document.querySelectorAll(".key");
+            keys.forEach(key => {
+                const keyChar = key.textContent;
+                if (keyChar === "Enter" || keyChar === "Backspace") return;
+
+                for (let i = 0; i < 5; i++) {
+                    if (currentInput[i] === keyChar) {
+                        if (result[i] === "green") {
+                            key.classList.add("green");
+                        } else if (result[i] === "yellow" && !key.classList.contains("green")) {
+                            key.classList.add("yellow");
+                        } else if (result[i] === "gray" && !key.classList.contains("green") && !key.classList.contains("yellow")) {
+                            key.classList.add("gray");
+                        }
+                    }
+                }
+            });
+        }
+
+        loadWords();
 
         // Обработка кликов по клавиатуре
         keyboard.addEventListener("click", (e) => {
@@ -149,9 +248,6 @@
                 handleKeyPress(key);
             }
         });
-
-        createGrid();
-        createKeyboard();
     </script>
 </body>
 </html>
