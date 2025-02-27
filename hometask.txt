@@ -2,3 +2,12 @@
 - В master добавлены изменения из веток hat и boots_buttons.
 - В demo отсутствуют изменения из boots_buttons.
 - В demo есть дополнительные изменения, которых нет в master.
+
+
+Количество коммитов в удалённом репозитории: 5
+Комментарии коммитов:
+1. init
+2. README added
+3. fix readme
+4. Merge boots_buttons into master
+5. Add hometask.txt with differences between master and demo
